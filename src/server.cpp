@@ -13,6 +13,10 @@ int process()
     ClientHello ch;
     receivemessage(ch);
     print_bytes(ch.random, sizeof(ch.random));
+    ServerHello sh;
+    // fixed cryptosuit(gmssl){sm2 sm3 sm4}
+    sendmessage(sh);
+    print_bytes(sh.random, sizeof(sh.random));
     return 0;
 }
 int work() { return 0; };
