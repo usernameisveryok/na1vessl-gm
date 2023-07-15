@@ -11,18 +11,25 @@
 SM2_KEY key;
 int process()
 {
+
     ClientHello ch;
     receivemessage(ch);
     print_bytes(ch.random, sizeof(ch.random));
-    
+
+    FILE *fp = fopen("../certificate/server.pub", "r");
+    sm2_public_key_info_from_pem(&key, fp);
+    fclose(fp);
+
+    ServerCertificate sc;
+    memcpy(sc.certificate, &key.public_key, sizeof(SM2_POINT));
+    sendmessage(sc);
+    print_bytes(sc.certificate, sizeof(sc.certificate));
+
     ServerHello sh;
     sendmessage(sh);
     print_bytes(sh.random, sizeof(sh.random));
-    
-    receivemessage(ch);
-    print_bytes(ch.random, sizeof(ch.random));
+
     return 0;
-    
 }
 int work() { return 0; };
 int main()

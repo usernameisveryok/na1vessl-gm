@@ -16,15 +16,14 @@ int process()
     sendmessage(ch);
     print_bytes(ch.random, sizeof(ch.random));
 
+    ServerCertificate sc;
+    receivemessage(sc);
+    print_bytes(sc.certificate, sizeof(sc.certificate));
+    
     ServerHello sh;
     receivemessage(sh);
     print_bytes(sh.random, sizeof(sh.random));
 
-    rand_bytes(ch.random, 32); // get rand
-
-    sendmessage(ch);
-    print_bytes(ch.random, sizeof(ch.random));
-    
     return 0;
 }
 int work() { return 0; };
