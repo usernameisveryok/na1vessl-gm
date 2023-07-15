@@ -1,0 +1,6 @@
+*.exe
+*.pem
+*.o
+*.a
+.vscode
+*demo*
