@@ -11,10 +11,11 @@
 int process()
 {
     ClientHello ch;
-    rand_bytes(ch.random, 32); // get rand
-    
+    receivemessage(ch);
+    print_bytes(ch.random, sizeof(ch.random));
+    return 0;
 }
-int work(){};
+int work() { return 0; };
 int main()
 {
     process();

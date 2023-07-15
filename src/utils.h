@@ -3,8 +3,6 @@
 #include "netio.h"
 typedef uint8_t BYTE;
 #define BUFSIZE 1024
-int sendmessage(Message &msg);
-int receivemessage(Message &msg);
 enum MessageType
 {
     client_hello = 0x80,
@@ -18,7 +16,6 @@ enum MessageType
     error_message = 0x88,
     application_data = 0x89
 };
-
 struct Message
 {
     MessageType msg_type;
@@ -27,6 +24,8 @@ struct Message
     virtual std::vector<uint8_t> serialize() const = 0;
     virtual void deserialize(const std::vector<uint8_t> &data) = 0;
 };
+int sendmessage(Message &msg);
+int receivemessage(Message &msg);
 
 struct ClientHello : Message
 {
