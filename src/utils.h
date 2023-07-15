@@ -106,7 +106,7 @@ struct ClientCertificate : Message
 
 struct ServerCertificate : Message
 {
-    BYTE certificate[33];
+    BYTE certificate[64];
     ServerCertificate()
     {
         msg_type = server_hello;
@@ -129,7 +129,7 @@ struct ServerCertificate : Message
 
 struct CertificateVerify : Message
 {
-    BYTE signature[33];
+    BYTE signature[64];
     CertificateVerify()
     {
         msg_type = certificate_verify;

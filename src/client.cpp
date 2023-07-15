@@ -12,8 +12,19 @@ int process()
 {
     ClientHello ch;
     rand_bytes(ch.random, 32); // get rand
-    print_bytes(ch.random, sizeof(ch.random));
+
     sendmessage(ch);
+    print_bytes(ch.random, sizeof(ch.random));
+
+    ServerHello sh;
+    receivemessage(sh);
+    print_bytes(sh.random, sizeof(sh.random));
+
+    rand_bytes(ch.random, 32); // get rand
+
+    sendmessage(ch);
+    print_bytes(ch.random, sizeof(ch.random));
+    
     return 0;
 }
 int work() { return 0; };

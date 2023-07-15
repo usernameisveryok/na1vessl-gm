@@ -1,4 +1,4 @@
-all:client client gencert
+all:client server gencert
 client:netio utils
 	g++ client.cpp netio.o utils.o ../lib/libgmssl.a -o client.exe
 server:netio utils
