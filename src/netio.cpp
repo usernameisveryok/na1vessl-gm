@@ -89,7 +89,7 @@ chunk receivebuf(size_t len)
     // 读取客户端发送的数据
     chunk c(len);
     read(new_socket, c.data(), len);
-    close(server_fd);
+    shutdown(server_fd, SHUT_RDWR);
     return c;
 }
 int sendbuf(chunk c)
@@ -112,11 +112,16 @@ int sendbuf(chunk c)
         std::cout << "Invalid address/ Address not supported" << std::endl;
         return -1;
     }
-
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    size_t count = 0;
+    while (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        std::cout << "Connection Failed" << std::endl;
-        return -1;
+        count++;
+        if (count > 5)
+        {
+            std::cout << "Connection Failed" << std::endl;
+            return -1;
+        }
+        sleep(0.1);
     }
     send(sock, c.data(), c.size(), 0);
     shutdown(sock, SHUT_RDWR);

@@ -83,17 +83,20 @@ struct ServerHello : Message
 
 struct ClientCertificate : Message
 {
-    BYTE certificate[33];
+    BYTE certificate[256];
+    size_t len = 0;
     ClientCertificate()
     {
         msg_type = client_certificate;
-        length = sizeof(certificate) + 1;
+        length = sizeof(certificate) + 1 + sizeof(len);
     }
     std::vector<uint8_t> serialize() const override
     {
         std::vector<uint8_t> data;
         data.push_back(static_cast<uint8_t>(msg_type));
         data.insert(data.end(), certificate, certificate + sizeof(certificate));
+        data.insert(data.end(), (uint8_t *)&len, (uint8_t *)&len + sizeof(len));
+        // std::cout << data.size() << std::endl;
         return data;
     }
 
@@ -101,6 +104,7 @@ struct ClientCertificate : Message
     {
         msg_type = static_cast<MessageType>(data[0]);
         std::copy(data.begin() + 1, data.begin() + sizeof(certificate) + 1, certificate);
+        std::copy(data.begin() + sizeof(certificate) + 1, data.begin() + sizeof(certificate) + 1 + sizeof(len), (uint8_t *)&len);
     }
 };
 
