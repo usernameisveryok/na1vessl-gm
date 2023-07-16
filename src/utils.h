@@ -1,5 +1,15 @@
 #include <iostream>
 #include <vector>
+#include <gmssl/sm3.h>
+#include <gmssl/sm2.h>
+#include <gmssl/sm4.h>
+#include <gmssl/ec.h>
+#include <gmssl/base64.h>
+#include <gmssl/error.h>
+#include <gmssl/pem.h>
+#include <gmssl/rand.h>
+#include <unistd.h>
+
 #include "netio.h"
 typedef uint8_t BYTE;
 #define BUFSIZE 1024
@@ -245,5 +255,28 @@ struct ClientFinished : Message
     {
         msg_type = static_cast<MessageType>(data[0]);
         std::copy(data.begin() + 1, data.begin() + sizeof(message_MAC) + 1, message_MAC);
+    }
+};
+struct AppliacationData : Message
+{
+    BYTE encryptedData[1024];
+    AppliacationData()
+    {
+        msg_type = application_data;
+        length = sizeof(encryptedData) + 1 ;
+    }
+    std::vector<uint8_t> serialize() const override
+    {
+        std::vector<uint8_t> data;
+        data.push_back(static_cast<uint8_t>(msg_type));
+        data.insert(data.end(), encryptedData, encryptedData + sizeof(encryptedData));
+
+        return data;
+    }
+
+    void deserialize(const std::vector<uint8_t> &data) override
+    {
+        msg_type = static_cast<MessageType>(data[0]);
+        std::copy(data.begin() + 1, data.begin() + sizeof(encryptedData) + 1, encryptedData);
     }
 };

@@ -1,14 +1,8 @@
-#include <gmssl/sm3.h>
-#include <gmssl/sm2.h>
-#include <gmssl/ec.h>
-#include <gmssl/base64.h>
-#include <gmssl/error.h>
-#include <gmssl/pem.h>
-#include <gmssl/rand.h>
-#include <unistd.h>
 #include "utils.h"
 SM2_KEY key, clientkey;
-
+uint8_t sessionkey[16];
+SM4_KEY sm4key;
+const uint8_t iv[16] = "karma";
 int process()
 {
     const char *pass = "karma";
@@ -93,9 +87,47 @@ int process()
         puts("channel established!");
     }
 
+    uint8_t keylable[512] = "key", *keyin = keylable;
+    keyin += 3;
+    memcpy(keyin, ch.random, 32);
+    keyin += 32;
+    memcpy(keyin, sh.random, 32);
+    keyin += 32;
+    uint8_t raw[32];
+    sm3_hmac(master_secret, 48, keylable, keyin - keylable, raw);
+    // puts("sessionkey");
+    // print_bytes(raw, 32);
+    SM3_KDF_CTX ctx;
+    sm3_kdf_init(&ctx, sizeof(sessionkey));
+    sm3_kdf_update(&ctx, raw, sizeof(raw));
+    sm3_kdf_finish(&ctx, (uint8_t *)&sessionkey);
+    puts("session key");
+    print_bytes((uint8_t *)&sessionkey, 16);
     return 0;
 }
-int work() { return 0; };
+int work()
+{
+    puts("Let's chat!");
+    AppliacationData ad;
+    size_t len;
+    uint8_t buf[1024];
+    while (true)
+    {
+        
+        receivemessage(ad);
+        puts("get message");
+        sm4_set_decrypt_key(&sm4key, sessionkey);
+        sm4_cbc_decrypt(&sm4key, iv, ad.encryptedData, sizeof(ad.encryptedData) / SM4_BLOCK_SIZE, buf);
+        puts((char *)buf);
+        puts("input:");
+        scanf("%s", buf);
+        sm4_set_encrypt_key(&sm4key, sessionkey);
+        sm4_cbc_encrypt(&sm4key, iv, buf, sizeof(buf) / SM4_BLOCK_SIZE, ad.encryptedData);
+        sendmessage(ad);
+    }
+
+    return 0;
+};
 int main()
 {
     process();
