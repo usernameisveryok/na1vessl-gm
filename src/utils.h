@@ -3,6 +3,7 @@
 #include "netio.h"
 typedef uint8_t BYTE;
 #define BUFSIZE 1024
+
 enum MessageType
 {
     client_hello = 0x80,
@@ -83,20 +84,17 @@ struct ServerHello : Message
 
 struct ClientCertificate : Message
 {
-    BYTE certificate[256];
-    size_t len = 0;
+    BYTE certificate[64];
     ClientCertificate()
     {
         msg_type = client_certificate;
-        length = sizeof(certificate) + 1 + sizeof(len);
+        length = sizeof(certificate) + 1;
     }
     std::vector<uint8_t> serialize() const override
     {
         std::vector<uint8_t> data;
         data.push_back(static_cast<uint8_t>(msg_type));
         data.insert(data.end(), certificate, certificate + sizeof(certificate));
-        data.insert(data.end(), (uint8_t *)&len, (uint8_t *)&len + sizeof(len));
-        // std::cout << data.size() << std::endl;
         return data;
     }
 
@@ -104,7 +102,6 @@ struct ClientCertificate : Message
     {
         msg_type = static_cast<MessageType>(data[0]);
         std::copy(data.begin() + 1, data.begin() + sizeof(certificate) + 1, certificate);
-        std::copy(data.begin() + sizeof(certificate) + 1, data.begin() + sizeof(certificate) + 1 + sizeof(len), (uint8_t *)&len);
     }
 };
 
@@ -131,19 +128,43 @@ struct ServerCertificate : Message
     }
 };
 
+// struct CertificateVerify : Message
+// {
+//     BYTE signature[64];
+//     CertificateVerify()
+//     {
+//         msg_type = certificate_verify;
+//         length = sizeof(signature) + 1;
+//     }
+//     std::vector<uint8_t> serialize() const override
+//     {
+//         std::vector<uint8_t> data;
+//         data.push_back(static_cast<uint8_t>(msg_type));
+//         data.insert(data.end(), signature, signature + sizeof(signature));
+//         return data;
+//     }
+
+//     void deserialize(const std::vector<uint8_t> &data) override
+//     {
+//         msg_type = static_cast<MessageType>(data[0]);
+//         std::copy(data.begin() + 1, data.begin() + sizeof(signature) + 1, signature);
+//     }
+// };
 struct CertificateVerify : Message
 {
-    BYTE signature[64];
+    BYTE signature[256];
+    size_t len;
     CertificateVerify()
     {
         msg_type = certificate_verify;
-        length = sizeof(signature) + 1;
+        length = sizeof(signature) + 1 + sizeof(len);
     }
     std::vector<uint8_t> serialize() const override
     {
         std::vector<uint8_t> data;
         data.push_back(static_cast<uint8_t>(msg_type));
         data.insert(data.end(), signature, signature + sizeof(signature));
+        data.insert(data.end(), (uint8_t *)&len, (uint8_t *)&len + sizeof(len));
         return data;
     }
 
@@ -151,22 +172,25 @@ struct CertificateVerify : Message
     {
         msg_type = static_cast<MessageType>(data[0]);
         std::copy(data.begin() + 1, data.begin() + sizeof(signature) + 1, signature);
+        std::copy(data.begin() + sizeof(signature) + 1, data.begin() + sizeof(signature) + 1 + sizeof(len), (uint8_t *)&len);
     }
 };
 
 struct ClientKeyExchange : Message
 {
-    BYTE encryptedSharedSecret[33];
+    BYTE encryptedSharedSecret[256];
+    size_t len;
     ClientKeyExchange()
     {
         msg_type = client_key_exchange;
-        length = sizeof(encryptedSharedSecret) + 1;
+        length = sizeof(encryptedSharedSecret) + 1 + sizeof(len);
     }
     std::vector<uint8_t> serialize() const override
     {
         std::vector<uint8_t> data;
         data.push_back(static_cast<uint8_t>(msg_type));
         data.insert(data.end(), encryptedSharedSecret, encryptedSharedSecret + sizeof(encryptedSharedSecret));
+        data.insert(data.end(), (uint8_t *)&len, (uint8_t *)&len + sizeof(len));
         return data;
     }
 
@@ -174,6 +198,7 @@ struct ClientKeyExchange : Message
     {
         msg_type = static_cast<MessageType>(data[0]);
         std::copy(data.begin() + 1, data.begin() + sizeof(encryptedSharedSecret) + 1, encryptedSharedSecret);
+        std::copy(data.begin() + sizeof(encryptedSharedSecret) + 1, data.begin() + sizeof(encryptedSharedSecret) + 1 + sizeof(len), (uint8_t *)&len);
     }
 };
 
