@@ -1,12 +1,13 @@
+OUTPWD = ../bin/
 all:client server gencert
-client:netio utils
-	g++ client.cpp netio.o utils.o ../lib/libgmssl.a -o client.exe
-server:netio utils
-	g++ server.cpp netio.o utils.o ../lib/libgmssl.a -o server.exe
-utils:netio
-	g++ -c utils.cpp 
+client:netio message
+	g++ client.cpp netio.o message.o ../lib/libgmssl.a -o ../bin/client.exe
+server:netio message
+	g++ server.cpp netio.o message.o ../lib/libgmssl.a -o ../bin/server.exe
+message:netio
+	g++ -c message.cpp 
 gencert:
-	g++ gencert.cpp ../lib/libgmssl.a -o gencert.exe
+	g++ gencert.cpp ../lib/libgmssl.a -o ../bin/gencert.exe
 netio:
 	g++ -c netio.cpp 
 clean:

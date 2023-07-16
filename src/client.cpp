@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "message.h"
 SM2_KEY key, serverkey;
 uint8_t sessionkey[16];
 SM4_KEY sm4key;
@@ -111,12 +111,13 @@ int work()
     uint8_t buf[1024];
     while (true)
     {
+        puts("---------------------------------------");
         puts("input:");
         scanf("%s",buf);
         sm4_set_encrypt_key(&sm4key, sessionkey);
         sm4_cbc_encrypt(&sm4key, iv, buf, sizeof(buf) / SM4_BLOCK_SIZE, ad.encryptedData);
         sendmessage(ad);
-        puts("get message");
+        puts("get message!");
         receivemessage(ad);
         sm4_set_decrypt_key(&sm4key, sessionkey);
         sm4_cbc_decrypt(&sm4key, iv, ad.encryptedData, sizeof(ad.encryptedData) / SM4_BLOCK_SIZE, buf);

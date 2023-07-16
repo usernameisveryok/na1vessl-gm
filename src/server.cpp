@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "message.h"
 SM2_KEY key, clientkey;
 uint8_t sessionkey[16];
 SM4_KEY sm4key;
@@ -15,22 +15,27 @@ int process()
 
     ClientHello ch;
     receivemessage(ch);
+    puts("client hello received!");
     print_bytes(ch.random, sizeof(ch.random));
 
     ServerCertificate sc;
     memcpy(sc.certificate, &key.public_key, sizeof(SM2_POINT));
+    puts("server cert send!");
     sendmessage(sc);
     print_bytes(sc.certificate, sizeof(sc.certificate));
 
     ServerHello sh;
+    puts("server hello sent!");
     sendmessage(sh);
     print_bytes(sh.random, sizeof(sh.random));
 
     ClientCertificate cc;
+    puts("client cert sent");
     receivemessage(cc);
     memcpy(&clientkey.public_key, cc.certificate, sizeof(cc.certificate));
 
     CertificateVerify cv;
+    puts("certtificate verify received!");
     receivemessage(cv);
     uint8_t dgst[32], concat[128];
     memcpy(concat, sh.random, 32);
@@ -44,6 +49,7 @@ int process()
         return 0;
     }
     ClientKeyExchange ce;
+    puts("client exchange received!");
     receivemessage(ce);
     uint8_t master_secret[48];
     print_bytes(ce.encryptedSharedSecret, ce.len);
@@ -74,9 +80,11 @@ int process()
     memcpy(serverfinish + 6, dgst, 32);
     sm3_hmac(master_secret, 48, clientfinish, 32 + 6, dgst);
     sm3_hmac(master_secret, 48, serverfinish, 32 + 6, sf.message_MAC);
+    puts("serverfinish sent");
     sendmessage(sf);
 
     ClientFinished cf;
+    puts("received client finished!");
     receivemessage(cf);
     if (memcmp(cf.message_MAC, dgst, 32) != 0)
     {
@@ -113,12 +121,13 @@ int work()
     uint8_t buf[1024];
     while (true)
     {
-        
+
         receivemessage(ad);
         puts("get message");
         sm4_set_decrypt_key(&sm4key, sessionkey);
         sm4_cbc_decrypt(&sm4key, iv, ad.encryptedData, sizeof(ad.encryptedData) / SM4_BLOCK_SIZE, buf);
         puts((char *)buf);
+        puts("---------------------------------------");
         puts("input:");
         scanf("%s", buf);
         sm4_set_encrypt_key(&sm4key, sessionkey);
